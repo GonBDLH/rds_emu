@@ -1,11 +1,14 @@
-use crate::hardware::{cpu::{arm9::CPSR, CPU}, memory::Memory};
+use crate::hardware::{
+    cpu::{arm9::CPSR, CPU},
+    memory::Memory,
+};
 
 use super::{Instruction, InstructionArgs};
 
-pub fn logical_and<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn logical_and<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn add_with_carry<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {
-    let args = if let Some(args) = instr.args {
+pub fn add_with_carry<T: CPU>(instr: &Instruction<T>, cpu: &mut T, _mem: &mut Memory) {
+    let args = if let Some(args) = &instr.args {
         if let InstructionArgs::DataProcessing(data_processing_args) = args {
             data_processing_args
         } else {
@@ -20,44 +23,43 @@ pub fn add_with_carry<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Mem
     let shifter_operand = args.shift_op.execute(cpu);
     let cflag = (cpu.get_register(CPSR) >> 29) & 1;
     let rn_val = cpu.get_register(args.rn);
-    
+
     let rd_val = rn_val.wrapping_add(shifter_operand).wrapping_add(cflag);
     cpu.set_register(args.rd, rd_val);
     if args.s && args.rd == 15 {
         // TODO
-    } 
-
+    }
 }
 
-pub fn add<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn add<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn and<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn and<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn bic<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn bic<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn cmn<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn cmn<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn cmp<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn cmp<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn eor<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn eor<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn mov<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn mov<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn mvn<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn mvn<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn orr<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn orr<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn rsb<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn rsb<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn rsc<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn rsc<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn sbc<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn sbc<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn sub<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn sub<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn teq<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn teq<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
-pub fn tst<T: CPU>(instr: &Instruction<T>, cpu: &mut T, mem: &mut Memory) {}
+pub fn tst<T: CPU>(_instr: &Instruction<T>, _cpu: &mut T, _mem: &mut Memory) {}
 
 pub mod shifts {
     use crate::hardware::cpu::{arm9::CPSR, CPU};
@@ -79,7 +81,7 @@ pub mod shifts {
     }
 
     // Register
-    pub fn register<T: CPU>(cpu: &T, a: u32, b: u32) -> (u32, bool) {
+    pub fn register<T: CPU>(cpu: &T, a: u32, _b: u32) -> (u32, bool) {
         let cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
 
         (a as u32, cflag)
@@ -93,7 +95,7 @@ pub mod shifts {
         let shifter_carry_out: bool;
 
         let shift_imm = a;
-        let rm = cpu.get_register(b as usize);
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
 
         if shift_imm == 0 {
             shifter_operand = rm;
@@ -113,8 +115,8 @@ pub mod shifts {
         let shifter_operand: u32;
         let shifter_carry_out: bool;
 
-        let rs = cpu.get_register(a as usize) as u8;
-        let rm = cpu.get_register(b as usize);
+        let rs = cpu.get_register((a as usize).try_into().unwrap()) as u8;
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
 
         if rs == 0 {
             shifter_operand = rm;
@@ -135,13 +137,13 @@ pub mod shifts {
 
     // Logical Shift Right by Immediate
     pub fn lsr_imm<T: CPU>(cpu: &T, a: u32, b: u32) -> (u32, bool) {
-        let cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
+        let _cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
 
         let shifter_operand: u32;
         let shifter_carry_out: bool;
 
         let shift_imm = a;
-        let rm = cpu.get_register(b as usize);
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
 
         if shift_imm == 0 {
             shifter_operand = 0;
@@ -161,8 +163,8 @@ pub mod shifts {
         let shifter_operand: u32;
         let shifter_carry_out: bool;
 
-        let rs = cpu.get_register(a as usize) as u8;
-        let rm = cpu.get_register(b as usize);
+        let rs = cpu.get_register((a as usize).try_into().unwrap()) as u8;
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
 
         if rs == 0 {
             shifter_operand = rm;
@@ -183,13 +185,13 @@ pub mod shifts {
 
     // Arithmetic Shift Right by Immediate
     pub fn asr_imm<T: CPU>(cpu: &T, a: u32, b: u32) -> (u32, bool) {
-        let cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
+        let _cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
 
         let shifter_operand: u32;
         let shifter_carry_out: bool;
 
         let shift_imm = a;
-        let rm = cpu.get_register(b as usize);
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
 
         if shift_imm == 0 {
             if rm & (1 << 31) == 0 {
@@ -209,7 +211,7 @@ pub mod shifts {
 
     // Arithmetic Shift Right by Immediate
     pub fn asr_reg<T: CPU>(cpu: &T, a: u32, b: u32) -> (u32, bool) {
-        let cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
+        let _cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
 
         let shifter_operand: u32;
         let shifter_carry_out: bool;
@@ -241,11 +243,11 @@ pub mod shifts {
         let cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
 
         let shifter_operand: u32;
-        let shifter_carry_out: bool; 
+        let shifter_carry_out: bool;
 
         let shift_imm = a;
-        let rm = cpu.get_register(b as usize);
-    
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
+
         if shift_imm == 0 {
             shifter_operand = ((cflag as u32) << 31) | (rm << 1);
             shifter_carry_out = rm & 1 > 0;
@@ -262,11 +264,11 @@ pub mod shifts {
         let cflag = (cpu.get_register(CPSR) & (1 << 29)) > 0;
 
         let shifter_operand: u32;
-        let shifter_carry_out: bool; 
+        let shifter_carry_out: bool;
 
-        let rs = cpu.get_register(a as usize) as u8;
-        let rm = cpu.get_register(b as usize);
-    
+        let rs = cpu.get_register((a as usize).try_into().unwrap()) as u8;
+        let rm = cpu.get_register((b as usize).try_into().unwrap());
+
         if rs == 0 {
             shifter_operand = rm;
             shifter_carry_out = cflag;

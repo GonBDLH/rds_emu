@@ -1,19 +1,9 @@
 use crate::hardware::memory::Memory;
 
 use super::instructions::branch::*;
-use super::instructions::coprocessor_data_processing::*;
-use super::instructions::coprocessor_ls_doublereg::*;
-use super::instructions::coprocessor_reg_transfer::*;
-use super::instructions::data_processing::*;
-use super::instructions::extra_load_store::*;
-use super::instructions::load_store::*;
-use super::instructions::load_store_multiple::*;
-use super::instructions::miscelaneous::*;
-use super::instructions::multiplies::*;
-use super::instructions::sw_int::*;
-use super::instructions::unconditional::*;
+
 use super::instructions::{data_processing_shift::*, InstructionBuilder};
-use super::{instructions::Instruction, CpuState, CPU, CpuMode, Registers};
+use super::{instructions::Instruction, CpuMode, CpuState, Registers, CPU};
 
 use bitmatch::bitmatch;
 
@@ -60,40 +50,40 @@ impl CPU for Arm946ES {
             7 => self.regs.r7,
             8 => match self.mode {
                 CpuMode::FIQ => self.regs.r8_fiq,
-                _ => self.regs.r8
+                _ => self.regs.r8,
             },
             9 => match self.mode {
                 CpuMode::FIQ => self.regs.r9_fiq,
-                _ => self.regs.r9
-            }
+                _ => self.regs.r9,
+            },
             10 => match self.mode {
                 CpuMode::FIQ => self.regs.r9_fiq,
-                _ => self.regs.r9
-            }
+                _ => self.regs.r9,
+            },
             11 => match self.mode {
                 CpuMode::FIQ => self.regs.r10_fiq,
-                _ => self.regs.r10
-            }
+                _ => self.regs.r10,
+            },
             12 => match self.mode {
                 CpuMode::FIQ => self.regs.r11_fiq,
-                _ => self.regs.r11
-            }
+                _ => self.regs.r11,
+            },
             13 => match self.mode {
                 CpuMode::Supervisor => self.regs.r13_svc,
                 CpuMode::Abort => self.regs.r13_abt,
                 CpuMode::Undefined => self.regs.r13_und,
                 CpuMode::IRQ => self.regs.r13_irq,
                 CpuMode::FIQ => self.regs.r13_fiq,
-                _ => self.regs.r13
-            }
+                _ => self.regs.r13,
+            },
             14 => match self.mode {
                 CpuMode::Supervisor => self.regs.r14_svc,
                 CpuMode::Abort => self.regs.r14_abt,
                 CpuMode::Undefined => self.regs.r14_und,
                 CpuMode::IRQ => self.regs.r14_irq,
                 CpuMode::FIQ => self.regs.r14_fiq,
-                _ => self.regs.r14
-            }
+                _ => self.regs.r14,
+            },
             15 => self.regs.r15,
             16 => self.regs.cpsr,
             17 => match self.mode {
@@ -102,10 +92,10 @@ impl CPU for Arm946ES {
                 CpuMode::Undefined => self.regs.spsr_und,
                 CpuMode::IRQ => self.regs.spsr_irq,
                 CpuMode::FIQ => self.regs.spsr_fiq,
-                _ => unreachable!("SPSR En modo User o System")
-            }
+                _ => unreachable!("SPSR En modo User o System"),
+            },
 
-            _ => unreachable!("Registro no existente")
+            _ => unreachable!("Registro no existente"),
         }
     }
 
@@ -125,40 +115,40 @@ impl CPU for Arm946ES {
             7 => self.regs.r7 = val,
             8 => match self.mode {
                 CpuMode::FIQ => self.regs.r8_fiq = val,
-                _ => self.regs.r8 = val
+                _ => self.regs.r8 = val,
             },
             9 => match self.mode {
                 CpuMode::FIQ => self.regs.r9_fiq = val,
-                _ => self.regs.r9 = val
-            }
+                _ => self.regs.r9 = val,
+            },
             10 => match self.mode {
                 CpuMode::FIQ => self.regs.r9_fiq = val,
-                _ => self.regs.r9 = val
-            }
+                _ => self.regs.r9 = val,
+            },
             11 => match self.mode {
                 CpuMode::FIQ => self.regs.r10_fiq = val,
-                _ => self.regs.r10 = val
-            }
+                _ => self.regs.r10 = val,
+            },
             12 => match self.mode {
                 CpuMode::FIQ => self.regs.r11_fiq = val,
-                _ => self.regs.r11 = val
-            }
+                _ => self.regs.r11 = val,
+            },
             13 => match self.mode {
                 CpuMode::Supervisor => self.regs.r13_svc = val,
                 CpuMode::Abort => self.regs.r13_abt = val,
                 CpuMode::Undefined => self.regs.r13_und = val,
                 CpuMode::IRQ => self.regs.r13_irq = val,
                 CpuMode::FIQ => self.regs.r13_fiq = val,
-                _ => self.regs.r13 = val
-            }
+                _ => self.regs.r13 = val,
+            },
             14 => match self.mode {
                 CpuMode::Supervisor => self.regs.r14_svc = val,
                 CpuMode::Abort => self.regs.r14_abt = val,
                 CpuMode::Undefined => self.regs.r14_und = val,
                 CpuMode::IRQ => self.regs.r14_irq = val,
                 CpuMode::FIQ => self.regs.r14_fiq = val,
-                _ => self.regs.r14 = val
-            }
+                _ => self.regs.r14 = val,
+            },
             15 => self.regs.r15 = val,
             16 => self.regs.cpsr = val,
             17 => match self.mode {
@@ -167,18 +157,16 @@ impl CPU for Arm946ES {
                 CpuMode::Undefined => self.regs.spsr_und = val,
                 CpuMode::IRQ => self.regs.spsr_irq = val,
                 CpuMode::FIQ => self.regs.spsr_fiq = val,
-                _ => unreachable!("SPSR En modo User o System")
-            }
+                _ => unreachable!("SPSR En modo User o System"),
+            },
 
-            _ => unreachable!("Registro no existente")
+            _ => unreachable!("Registro no existente"),
         }
     }
 
-    
-
     #[allow(non_snake_case)]
     #[bitmatch]
-    fn decode_arm<T: CPU>(cpu: &mut T, mem: &mut Memory, opcode: u32) -> Instruction<T> {
+    fn decode_arm<T: CPU>(_cpu: &mut T, _mem: &mut Memory, opcode: u32) -> Instruction<T> {
         #[bitmatch]
         match opcode {
             "aaaa00b0101cddddeeeeffffffffffff" => InstructionBuilder::default()
@@ -204,7 +192,7 @@ impl CPU for Arm946ES {
                 .set_fn(b_bl)
                 .decode_b_bl(b, c)
                 .build(),
-                
+
             // "cccc00i1110Snnnnddddssssssssssss" => Instruction {f: bic },
             // "111000010010iiiiiiiiiiii0111IIII" => Instruction {f: bkpt },
             // "1111101Hiiiiiiiiiiiiiiiiiiiiiiii" => Instruction {f: blx_unconditional },

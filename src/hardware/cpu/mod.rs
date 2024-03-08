@@ -22,7 +22,7 @@ pub enum CpuMode {
     Supervisor,
     Abort,
     Undefined,
-    System
+    System,
 }
 
 pub trait CPU {
@@ -37,7 +37,7 @@ pub trait CPU {
     fn decode_arm<T: CPU>(cpu: &mut T, mem: &mut Memory, opcode: u32) -> Instruction<T>;
 }
 
-pub fn fetch_arm(cpu: &mut impl CPU, mem: &Memory) -> u32 {
+pub fn fetch_arm(cpu: &mut impl CPU, _mem: &Memory) -> u32 {
     // let regs = cpu.get_registers_mut();
     let dir = cpu.get_register(0) as usize;
 

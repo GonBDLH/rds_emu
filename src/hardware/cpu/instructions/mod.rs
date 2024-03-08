@@ -30,9 +30,9 @@ struct ShiftOp<T: CPU> {
 
 impl<T: CPU> ShiftOp<T> {
     pub fn execute(&self, cpu: &T) -> u32 {
-        let (shifter_operand, shifter_carry_out) = (self.shift_fn.unwrap())(cpu, self.a, self.b);
+        let (shifter_operand, _shifter_carry_out) = (self.shift_fn.unwrap())(cpu, self.a, self.b);
         shifter_operand
-    } 
+    }
 }
 
 impl<T: CPU> Default for ShiftOp<T> {
@@ -64,7 +64,6 @@ fn get_shift_op<T: CPU>(sr: u16, i: bool) -> ShiftOp<T> {
                 shift.a = a as u32;
                 shift.b = b as u32;
                 shift.shift_fn = Some(lsl_imm);
-
             }
             // Logical Shift Left by Register
             "aaa0001bbbb" => {
@@ -83,31 +82,31 @@ fn get_shift_op<T: CPU>(sr: u16, i: bool) -> ShiftOp<T> {
                 shift.a = a as u32;
                 shift.b = b as u32;
                 shift.shift_fn = Some(lsr_reg);
-            },
+            }
             // Arithmetic Shift Right by Immediate
             "aaaaa100bbbb" => {
                 shift.a = a as u32;
                 shift.b = b as u32;
                 shift.shift_fn = Some(asr_imm);
-            },
+            }
             // Arithmetic Shift Right by Register
             "aaaa0101bbbb" => {
                 shift.a = a as u32;
                 shift.b = b as u32;
                 shift.shift_fn = Some(asr_reg);
-            },
+            }
             // Rotate Right by Immediate
             "aaaaa110bbbb" => {
                 shift.a = a as u32;
                 shift.b = b as u32;
                 shift.shift_fn = Some(ror_imm);
-            },
+            }
             // Rotate Right by Register
             "aaaa0111bbbb" => {
                 shift.a = a as u32;
                 shift.b = b as u32;
                 shift.shift_fn = Some(ror_reg);
-            },
+            }
             _ => unreachable!(),
         }
     }
@@ -120,12 +119,12 @@ struct DataProcessingArgs<T: CPU> {
     s: bool,
     rn: u32,
     rd: u32,
-    shift_op: ShiftOp<T>
+    shift_op: ShiftOp<T>,
 }
 
 enum InstructionArgs<T: CPU> {
     DataProcessing(DataProcessingArgs<T>),
-    Branch(bool, u32)
+    Branch(bool, u32),
 }
 
 pub struct Instruction<T: CPU> {
@@ -223,14 +222,7 @@ impl<T: CPU> InstructionBuilder<T> {
         self
     }
 
-    pub fn decode_data_processing(
-        mut self,
-        i: u32,
-        s: u32,
-        rn: u32,
-        rd: u32,
-        sr: u32,
-    ) -> Self {
+    pub fn decode_data_processing(mut self, i: u32, s: u32, rn: u32, rd: u32, sr: u32) -> Self {
         let i = i != 0;
         let shift_op = get_shift_op(sr as u16, i);
 
@@ -239,14 +231,14 @@ impl<T: CPU> InstructionBuilder<T> {
             s: s != 0,
             rn,
             rd,
-            shift_op
+            shift_op,
         }));
         self
     }
 
     pub fn decode_b_bl(mut self, l: u32, signed_immed_24: u32) -> Self {
         self.0.args = Some(InstructionArgs::Branch(l > 0, signed_immed_24));
-        
+
         self
     }
 }
